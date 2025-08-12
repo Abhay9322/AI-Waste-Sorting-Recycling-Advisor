@@ -3,12 +3,11 @@ import fs from "fs";
 
 export const analyzeWaste = async (req, res) => {
     try {
-        const location = JSON.parse(req.body.location);
         const imagePath = req.file.path;
 
 
         const aiResponse = await axios.post(
-            `https://api-inference.huggingface.co/models/your-waste-model`,
+            `https://api-inference.huggingface.co/models/microsoft/resnet-50`,
             fs.readFileSync(imagePath),
             {
                 headers: {
@@ -20,23 +19,10 @@ export const analyzeWaste = async (req, res) => {
 
         const wasteType = aiResponse.data[0].label;
 
-        const mapResponse = await axios.get(
-            `https://maps.googleapis.com/maps/api/place/nearbysearch/json`,
-            {
-                params: {
-                    location: `${location.lat},${location.lng}`,
-                    radius: 5000,
-                    keyword: `${wasteType} recycling center`,
-                    key: process.env.GOOGLE_MAPS_KEY,
-                },
-            }
-        );
-
         fs.unlinkSync(imagePath);
 
         res.json({
-            wasteType,
-            centers: mapResponse.data.results,
+            wasteType
         });
     } catch (error) {
         console.error(error);

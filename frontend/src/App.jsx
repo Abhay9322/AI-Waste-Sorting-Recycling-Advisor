@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Result from './pages/Result';
-import WasteForm from "./WasteForm";
+import WasteForm from "./components/WasteForm";
+
 
 const App = () => {
     const [result, setResult] = useState(null);

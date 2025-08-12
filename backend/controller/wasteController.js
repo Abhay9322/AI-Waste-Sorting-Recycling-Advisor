@@ -1,13 +1,21 @@
 import axios from "axios";
+import fs from "fs";
 
 export const analyzeWaste = async (req, res) => {
     try {
-        const { imageUrl, location } = req.body;
+        const location = JSON.parse(req.body.location);
+        const imagePath = req.file.path;
+
 
         const aiResponse = await axios.post(
             `https://api-inference.huggingface.co/models/your-waste-model`,
-            { inputs: imageUrl },
-            { headers: { Authorization: `Bearer ${process.env.HF_API_KEY}` } }
+            fs.readFileSync(imagePath),
+            {
+                headers: {
+                    Authorization: `Bearer ${process.env.HF_API_KEY}`,
+                    "Content-Type": "application/octet-stream"
+                }
+            }
         );
 
         const wasteType = aiResponse.data[0].label;
@@ -24,11 +32,14 @@ export const analyzeWaste = async (req, res) => {
             }
         );
 
+        fs.unlinkSync(imagePath);
+
         res.json({
             wasteType,
             centers: mapResponse.data.results,
         });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: "Error analyzing waste" });
     }
 };

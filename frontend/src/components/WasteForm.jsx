@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 
 const WasteForm = ({ setResult }) => {
-    const [imageUrl, setImageUrl] = useState("");
-    const [location, setLocation] = useState({ lat: "", lng: "" });
+    const [file, setFile] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -14,24 +13,27 @@ const WasteForm = ({ setResult }) => {
                 lng: pos.coords.longitude
             };
 
-            setLocation(loc);
+            const formData = new FormData();
+            formData.append("image", file);
+            formData.append("location", JSON.stringify(loc));
 
-            const res = await axios.post("http://localhost:5000/api/waste/analyze", {
-                imageUrl,
-                location: loc
-            });
+            const res = await axios.post(
+                "http://localhost:5000/api/waste/analyze",
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
             setResult(res.data);
         });
     };
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
             <input
-                type="text"
-                placeholder='Enter Image URL of Waste'
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="border p-2"
+                type="file"
+                accept='image/*'
+                onChange={(e) => setFile(e.target.files[0])}
+                className='border p-2'
+                required
             />
             <button className='bg-green-600 text-white p-2 rounded'>Analyze Waste</button>
         </form>
